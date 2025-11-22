@@ -5,7 +5,7 @@ metadata:
   labels:
     app: app
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: app
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: app:1.14.2
+        image: docker-registry:5000/app:latest
         ports:
         - containerPort: 8000
 
@@ -34,4 +34,36 @@ spec:
       port: 80       # 
       targetPort: 8000
       nodePort: 30007
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  behavior:
+    scaleUp:
+      policies:
+        - type: Percent
+          value: 100         
+          periodSeconds: 30  
+    scaleDown:
+      policies:
+        - type: Percent
+          value: 50          
+          periodSeconds: 30  
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+
 

@@ -39,11 +39,12 @@ pipeline {
 		echo "$SERVICE_NAME image pushed to private registry with 'latest' and '$COMMIT_ID' as tags successfully"
             }
         }
-
         stage('Kubernetes Deploy') {
             steps {
-                sh "kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/$SERVICE_NAME-deployment"
-		echo "$SERVICE_NAME deployed successfully"
+               sh '''
+               kubectl --kubeconfig="$KUBECONFIG" rollout restart deployment/"$SERVICE_NAME"-deployment
+               '''
+               echo "${SERVICE_NAME} deployed successfully"
             }
         }
     }

@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "docker-registty:5000"
+        REGISTRY = "docker-registry:5000"
         SERVICE_NAME = "app"
 	COMMIT_ID = "${env.GIT_COMMIT}"
     }

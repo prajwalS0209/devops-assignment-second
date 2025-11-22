@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "docker-registty:5000"
+        SERVICE_NAME = "app"
+	COMMIT_ID = "${env.GIT_COMMIT}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh "docker build  -f PDS/Dockerfile  -t $REGISTRY/$SERVICE_NAME:latest ."
+		sh "docker tag $REGISTRY/$SERVICE_NAME:latest $REGISTRY/$SERVICE_NAME:$COMMIT_ID"
+		echo "Built and retagged with 'latest' and '$COMMIT_ID' successfully"
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh "docker push $REGISTRY/$SERVICE_NAME:latest"
+		sh "docker push $REGISTRY/$SERVICE_NAME:$COMMIT_ID"
+		echo "$SERVICE_NAME image pushed to private registry with 'latest' and '$COMMIT_ID' as tags successfully"
+            }
+        }
+
+        stage('Kubernetes Deploy') {
+            steps {
+                sh "kubectl rollout restart deployment/$SERVICE_NAME"
+		echo "$SERVICE_NAME deployed successfully"
+            }
+        }
+    }
+}
+

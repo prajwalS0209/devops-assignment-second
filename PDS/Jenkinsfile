@@ -5,7 +5,6 @@ pipeline {
         REGISTRY  = "prajwals0209"
         SERVICE_NAME = "app"
 	COMMIT_ID = "${env.GIT_COMMIT}"
-        KUBECONFIG = credentials('minikube-secret')
     }
 
     stages {
@@ -41,10 +40,12 @@ pipeline {
         }
         stage('Kubernetes Deploy') {
             steps {
-               sh '''
-               kubectl --kubeconfig="$KUBECONFIG" rollout restart deployment/"$SERVICE_NAME"-deployment
-               '''
-               echo "${SERVICE_NAME} deployed successfully"
+	      withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+                sh '''
+                kubectl --kubeconfig="$KUBECONFIG" rollout restart deployment/"$SERVICE_NAME"-deployment
+                '''
+                echo "${SERVICE_NAME} deployed successfully"
+              }
             }
         }
     }
